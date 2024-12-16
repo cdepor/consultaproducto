@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,6 +71,12 @@
         .result th {
             background-color: #f2f2f2;
         }
+        video {
+            width: 100%;
+            margin-top: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -87,37 +93,17 @@
                     <option value="0208">COLISEUM ARICA</option>
                     <option value="0207">COLISEUM COQUIMBO</option>
                     <option value="0205">COLISEUM IQUIQUE</option>
-                    <option value="0209">COLISEUM OSORNO</option>
-                    <option value="0206">COLISEUM PLAZA NORTE</option>
-                    <option value="0201">COLISEUM PLAZA OESTE</option>
-                    <option value="0204">COLISEUM TEMUCO</option>
                     <option value="0106">CONVERSE ALTO LAS CONDES</option>
-                    <option value="0110">CONVERSE ANTOFAGASTA</option>
-                    <option value="0108">CONVERSE CONCEPCION</option>
-                    <option value="0107">CONVERSE COSTANERA</option>
-                    <option value="0109">CONVERSE FLORIDA</option>
-                    <option value="0606">CONVERSE FS SAN PEDRO DE LA PAZ</option>
-                    <option value="0114">CONVERSE IMPERIO</option>
-                    <option value="0115">CONVERSE INDEPENDENCIA</option>
-                    <option value="0101">CONVERSE LA DEHESA</option>
-                    <option value="0111">CONVERSE LA SERENA</option>
-                    <option value="0113">CONVERSE LOS DOMINICOS</option>
-                    <option value="0112">CONVERSE MARINA ARAUCO</option>
-                    <option value="0103">CONVERSE PARQUE ARAUCO</option>
-                    <option value="0104">CONVERSE PLAZA OESTE</option>
-                    <option value="0105">CONVERSE PLAZA TREBOL</option>
-                    <option value="0102">CONVERSE PLAZA VESPUCIO</option>
-                    <option value="0116">CONVERSE PUERTO MONTT</option>
-                    <option value="0117">CONVERSE TEMUCO</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="productCode">Código de barra o código de producto:</label>
-                <input type="text" id="productCode" name="productCode" placeholder="Ejemplo: 123456789" required>
+                <input type="text" id="productCode" name="productCode" placeholder="Ejemplo: 123456789">
             </div>
             <div class="form-group">
                 <label for="scanBarcode">Escanear código de barra:</label>
-                <input type="text" id="scanBarcode" name="scanBarcode" placeholder="Escanea el código aquí">
+                <button type="button" onclick="startScanner()">Abrir Cámara</button>
+                <video id="cameraView" autoplay playsinline style="display: none;"></video>
             </div>
             <button type="button" onclick="fetchStock()">Consultar Stock</button>
         </form>
@@ -129,15 +115,14 @@
 
     <script>
         const mockStockData = [
-            { modelo: "Camiseta", color: "Rojo", talla: "M", stock: 25, sucursal: "0202" },
-            { modelo: "Camiseta", color: "Azul", talla: "L", stock: 10, sucursal: "0208" },
-            { modelo: "Pantalón", color: "Negro", talla: "S", stock: 15, sucursal: "0207" },
-            { modelo: "Zapatos", color: "Blanco", talla: "42", stock: 8, sucursal: "0106" },
+            { codigo: "0790920621422", modelo: "Removedor de Polvo", color: "Azul", talla: "N/A", stock: 50, sucursal: "0202" },
+            { codigo: "123456789", modelo: "Camiseta", color: "Rojo", talla: "M", stock: 25, sucursal: "0202" },
+            { codigo: "987654321", modelo: "Zapatos", color: "Blanco", talla: "42", stock: 8, sucursal: "0106" }
         ];
 
         function fetchStock() {
             const storeCode = document.getElementById("storeCode").value;
-            const code = document.getElementById("productCode").value.trim() || document.getElementById("scanBarcode").value.trim();
+            const code = document.getElementById("productCode").value.trim();
 
             if (!storeCode) {
                 alert("Por favor, seleccione una sucursal.");
@@ -145,12 +130,11 @@
             }
 
             if (!code) {
-                alert("Por favor, ingresa un código o escanea uno válido.");
+                alert("Por favor, ingresa un código de producto o escanea uno válido.");
                 return;
             }
 
-            // Filtrar datos por código de sucursal y código de producto
-            const filteredStock = mockStockData.filter(item => item.sucursal === storeCode && item.modelo.includes(code));
+            const filteredStock = mockStockData.filter(item => item.sucursal === storeCode && (item.codigo === code || item.modelo.includes(code)));
 
             const resultDiv = document.getElementById("result");
             resultDiv.innerHTML = "";
@@ -158,6 +142,7 @@
             if (filteredStock.length > 0) {
                 let table = `<table>
                     <tr>
+                        <th>Código</th>
                         <th>Modelo</th>
                         <th>Color</th>
                         <th>Talla</th>
@@ -166,6 +151,7 @@
 
                 filteredStock.forEach(item => {
                     table += `<tr>
+                        <td>${item.codigo}</td>
                         <td>${item.modelo}</td>
                         <td>${item.color}</td>
                         <td>${item.talla}</td>
@@ -178,6 +164,18 @@
             } else {
                 resultDiv.innerHTML = `<p>No se encontró stock para el código: <strong>${code}</strong> en la sucursal seleccionada.</p>`;
             }
+        }
+
+        function startScanner() {
+            const video = document.getElementById("cameraView");
+            video.style.display = "block";
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then((stream) => {
+                    video.srcObject = stream;
+                })
+                .catch((err) => {
+                    alert("No se pudo acceder a la cámara: " + err.message);
+                });
         }
     </script>
 </body>
