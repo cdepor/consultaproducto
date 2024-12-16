@@ -115,10 +115,18 @@
 
     <script>
         const mockStockData = [
-            { codigo: "0790920621422", modelo: "Removedor de Polvo", color: "Azul", talla: "N/A", stock: 50, sucursal: "0202" },
-            { codigo: "123456789", modelo: "Camiseta", color: "Rojo", talla: "M", stock: 25, sucursal: "0202" },
-            { codigo: "987654321", modelo: "Zapatos", color: "Blanco", talla: "42", stock: 8, sucursal: "0106" }
+            { codigo: "0790920621422", modelo: "Removedor de Polvo", color: "Azul", talla: "N/A", stock: getRandomStock(), sucursal: "0202" },
+            { codigo: "0790920621423", modelo: "Removedor de Polvo", color: "Rojo", talla: "N/A", stock: getRandomStock(), sucursal: "0202" },
+            { codigo: "0790920621424", modelo: "Removedor de Polvo", color: "Verde", talla: "N/A", stock: getRandomStock(), sucursal: "0208" },
+            { codigo: "0790920621425", modelo: "Removedor de Polvo", color: "Amarillo", talla: "N/A", stock: getRandomStock(), sucursal: "0207" },
+            { codigo: "0790920621426", modelo: "Removedor de Polvo", color: "Negro", talla: "N/A", stock: getRandomStock(), sucursal: "0106" },
+            { codigo: "123456789", modelo: "Camiseta", color: "Rojo", talla: "M", stock: getRandomStock(), sucursal: "0202" },
+            { codigo: "987654321", modelo: "Zapatos", color: "Blanco", talla: "42", stock: getRandomStock(), sucursal: "0106" }
         ];
+
+        function getRandomStock() {
+            return Math.floor(Math.random() * 100) + 1;
+        }
 
         function fetchStock() {
             const storeCode = document.getElementById("storeCode").value;
@@ -166,16 +174,28 @@
             }
         }
 
-        function startScanner() {
+        async function startScanner() {
             const video = document.getElementById("cameraView");
             video.style.display = "block";
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then((stream) => {
-                    video.srcObject = stream;
-                })
-                .catch((err) => {
-                    alert("No se pudo acceder a la cámara: " + err.message);
-                });
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+                video.play();
+                scanCode(video);
+            } catch (err) {
+                alert("No se pudo acceder a la cámara: " + err.message);
+            }
+        }
+
+        function scanCode(video) {
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            setInterval(() => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                // Puedes integrar una librería como QuaggaJS o ZXing para leer códigos aquí
+            }, 100);
         }
     </script>
 </body>
